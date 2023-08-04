@@ -1,14 +1,14 @@
-import * as THREE from 'three';
-import GameBoyController from './game-boy-scene-controller';
-import GameBoy from './game-boy/game-boy';
-import CartridgesController from './cartridges/cartridges-controller';
-import { SCENE_OBJECT_TYPE } from './data/game-boy-scene-data';
-import GameBoyGames from './game-boy-games/game-boy-games';
-import GameBoyDebug from './game-boy-debug';
-import CameraController from './camera-controller/camera-controller';
-import Background from './background/background';
-import { MessageDispatcher } from 'black-engine';
-import SCENE_CONFIG from '../../core/configs/scene-config';
+import * as THREE from "three";
+import GameBoyController from "./game-boy-scene-controller";
+import GameBoy from "./game-boy/game-boy";
+import CartridgesController from "./cartridges/cartridges-controller";
+import { SCENE_OBJECT_TYPE } from "./data/game-boy-scene-data";
+import GameBoyGames from "./game-boy-games/game-boy-games";
+import GameBoyDebug from "./game-boy-debug";
+import CameraController from "./camera-controller/camera-controller";
+import Background from "./background/background";
+import { MessageDispatcher } from "black-engine";
+import SCENE_CONFIG from "../../core/configs/scene-config";
 
 export default class GameBoyScene extends THREE.Group {
   constructor(data, raycasterController) {
@@ -82,11 +82,11 @@ export default class GameBoyScene extends THREE.Group {
     this._activeObjects[SCENE_OBJECT_TYPE.GameBoy] = gameBoy;
   }
 
+  // hiding cartridges from the scene
   _initCartridgesController() {
-    const cartridgesController = new CartridgesController();
-    this.add(cartridgesController);
-
-    this._activeObjects[SCENE_OBJECT_TYPE.Cartridges] = cartridgesController;
+    //const cartridgesController = new CartridgesController();
+    //this.add(cartridgesController);
+    //this._activeObjects[SCENE_OBJECT_TYPE.Cartridges] = cartridgesController;
   }
 
   _initGameBoyGames() {
@@ -104,7 +104,7 @@ export default class GameBoyScene extends THREE.Group {
   }
 
   _initBackground() {
-    const background = this._background = new Background();
+    const background = (this._background = new Background());
     this.add(background);
 
     this._activeObjects[SCENE_OBJECT_TYPE.Background] = background;
@@ -113,16 +113,17 @@ export default class GameBoyScene extends THREE.Group {
   _configureRaycaster() {
     const allMeshes = [];
     const gameBoy = this._activeObjects[SCENE_OBJECT_TYPE.GameBoy];
-    const cartridges = this._activeObjects[SCENE_OBJECT_TYPE.Cartridges];
+    // const cartridges = this._activeObjects[SCENE_OBJECT_TYPE.Cartridges];
 
     allMeshes.push(...gameBoy.getAllMeshes());
-    allMeshes.push(...cartridges.getAllMeshes());
+    //allMeshes.push(...cartridges.getAllMeshes());
     allMeshes.push(this._background.getMesh());
 
     this._data.raycasterController.addMeshes(allMeshes);
   }
 
   _initGameBoyController() {
+    console.log(this._activeObjects, "what are active objs");
     this._data.activeObjects = this._activeObjects;
     this._data.games = this._gameBoyGames;
     this._data.gameBoyDebug = this._gameBoyDebug;
@@ -134,7 +135,7 @@ export default class GameBoyScene extends THREE.Group {
 
   _initEmptySound() {
     if (SCENE_CONFIG.isMobile) {
-      window.addEventListener('touchstart', () => {
+      window.addEventListener("touchstart", () => {
         if (this._isSoundPlayed) {
           return;
         }
@@ -149,7 +150,11 @@ export default class GameBoyScene extends THREE.Group {
   }
 
   _initSignals() {
-    this._gameBoyController.events.on('fpsMeterChanged', () => this.events.post('fpsMeterChanged'));
-    this._gameBoyController.events.on('onSoundsEnabledChanged', () => this.events.post('onSoundsEnabledChanged'));
+    this._gameBoyController.events.on("fpsMeterChanged", () =>
+      this.events.post("fpsMeterChanged")
+    );
+    this._gameBoyController.events.on("onSoundsEnabledChanged", () =>
+      this.events.post("onSoundsEnabledChanged")
+    );
   }
 }

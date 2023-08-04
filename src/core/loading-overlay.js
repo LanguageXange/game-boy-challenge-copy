@@ -1,5 +1,5 @@
-import * as THREE from 'three';
-import { TWEEN } from '/node_modules/three/examples/jsm/libs/tween.module.min.js';
+import * as THREE from "three";
+import { TWEEN } from "/node_modules/three/examples/jsm/libs/tween.module.min.js";
 
 export default class LoadingOverlay extends THREE.Group {
   constructor() {
@@ -10,9 +10,10 @@ export default class LoadingOverlay extends THREE.Group {
     this._init();
   }
 
+  //
   hide() {
     new TWEEN.Tween(this._overlayMaterial.uniforms.uAlpha)
-      .to({ value: 0 }, 400)
+      .to({ value: 0 }, 5000) // black background fade out to show gameboy
       .easing(TWEEN.Easing.Linear.None)
       .start()
       .onComplete(() => {
@@ -22,7 +23,7 @@ export default class LoadingOverlay extends THREE.Group {
 
   _init() {
     const overlayGeometry = new THREE.PlaneGeometry(2, 2, 1, 1);
-    const overlayMaterial = this._overlayMaterial = new THREE.ShaderMaterial({
+    const overlayMaterial = (this._overlayMaterial = new THREE.ShaderMaterial({
       transparent: true,
       uniforms: {
         uAlpha: { value: 1 },
@@ -41,7 +42,7 @@ export default class LoadingOverlay extends THREE.Group {
           gl_FragColor = vec4(0.0, 0.0, 0.0, uAlpha);
         }
       `,
-    });
+    }));
 
     const overlay = new THREE.Mesh(overlayGeometry, overlayMaterial);
     this.add(overlay);

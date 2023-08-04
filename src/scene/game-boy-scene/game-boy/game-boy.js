@@ -1,19 +1,30 @@
-import * as THREE from 'three';
-import { TWEEN } from '/node_modules/three/examples/jsm/libs/tween.module.min.js';
-import { GAME_BOY_PART_TYPE, GAME_BOY_ACTIVE_PARTS, GAME_BOY_CROSS_PARTS, BUTTON_TYPE, GAME_BOY_DRAGGABLE_PARTS } from './data/game-boy-data';
-import Loader from '../../../core/loader';
-import { SCENE_OBJECT_TYPE } from '../data/game-boy-scene-data';
-import { GAME_BOY_BUTTONS_CONFIG, GAME_BOY_CONFIG, GAME_BOY_BUTTON_PART_BY_TYPE, CROSS_BUTTONS } from './data/game-boy-config';
-import { Black, MessageDispatcher } from 'black-engine';
-import mixTextureColorVertexShader from './mix-texture-color-shaders/mix-texture-color-vertex.glsl';
-import mixTextureColorFragmentShader from './mix-texture-color-shaders/mix-texture-color-fragment.glsl';
-import mixTextureBitmapVertexShader from './mix-texture-bitmap-shaders/mix-texture-bitmap-vertex.glsl';
-import mixTextureBitmapFragmentShader from './mix-texture-bitmap-shaders/mix-texture-bitmap-fragment.glsl';
-import Delayed from '../../../core/helpers/delayed-call';
-import DEBUG_CONFIG from '../../../core/configs/debug-config';
-import { SOUNDS_CONFIG } from '../../../core/configs/sounds-config';
-import GameBoyAudio from './game-boy-audio/game-boy-audio';
-import SCENE_CONFIG from '../../../core/configs/scene-config';
+import * as THREE from "three";
+import { TWEEN } from "/node_modules/three/examples/jsm/libs/tween.module.min.js";
+import {
+  GAME_BOY_PART_TYPE,
+  GAME_BOY_ACTIVE_PARTS,
+  GAME_BOY_CROSS_PARTS,
+  BUTTON_TYPE,
+  GAME_BOY_DRAGGABLE_PARTS,
+} from "./data/game-boy-data";
+import Loader from "../../../core/loader";
+import { SCENE_OBJECT_TYPE } from "../data/game-boy-scene-data";
+import {
+  GAME_BOY_BUTTONS_CONFIG,
+  GAME_BOY_CONFIG,
+  GAME_BOY_BUTTON_PART_BY_TYPE,
+  CROSS_BUTTONS,
+} from "./data/game-boy-config";
+import { Black, MessageDispatcher } from "black-engine";
+import mixTextureColorVertexShader from "./mix-texture-color-shaders/mix-texture-color-vertex.glsl";
+import mixTextureColorFragmentShader from "./mix-texture-color-shaders/mix-texture-color-fragment.glsl";
+import mixTextureBitmapVertexShader from "./mix-texture-bitmap-shaders/mix-texture-bitmap-vertex.glsl";
+import mixTextureBitmapFragmentShader from "./mix-texture-bitmap-shaders/mix-texture-bitmap-fragment.glsl";
+import Delayed from "../../../core/helpers/delayed-call";
+import DEBUG_CONFIG from "../../../core/configs/debug-config";
+import { SOUNDS_CONFIG } from "../../../core/configs/sounds-config";
+import GameBoyAudio from "./game-boy-audio/game-boy-audio";
+import SCENE_CONFIG from "../../../core/configs/scene-config";
 
 export default class GameBoy extends THREE.Group {
   constructor(pixiCanvas, audioListener) {
@@ -59,13 +70,17 @@ export default class GameBoy extends THREE.Group {
     this._isZeldaIntroPlaying = false;
 
     this._isMobileZoomIn = false;
-    this._draggableParts = SCENE_CONFIG.isMobile ? GAME_BOY_DRAGGABLE_PARTS : [...GAME_BOY_DRAGGABLE_PARTS, GAME_BOY_PART_TYPE.Screen];
-    this._dragRotationSpeed = SCENE_CONFIG.isMobile ? GAME_BOY_CONFIG.rotation.mobileDragRotationSpeed : GAME_BOY_CONFIG.rotation.dragRotationSpeed;
+    this._draggableParts = SCENE_CONFIG.isMobile
+      ? GAME_BOY_DRAGGABLE_PARTS
+      : [...GAME_BOY_DRAGGABLE_PARTS, GAME_BOY_PART_TYPE.Screen];
+    this._dragRotationSpeed = SCENE_CONFIG.isMobile
+      ? GAME_BOY_CONFIG.rotation.mobileDragRotationSpeed
+      : GAME_BOY_CONFIG.rotation.dragRotationSpeed;
 
     this._updateSkipAllowed = SCENE_CONFIG.isMobile;
     this._updateScreenSkipFrames = 2;
     this._updateScreenCounter = this._updateScreenSkipFrames;
-    this._isFirstTextureUpdate = false
+    this._isFirstTextureUpdate = false;
 
     this._init();
   }
@@ -77,7 +92,7 @@ export default class GameBoy extends THREE.Group {
   }
 
   onPointerDown(object) {
-    const objectPartType = object.userData['partType'];
+    const objectPartType = object.userData["partType"];
 
     for (const buttonPart in GAME_BOY_BUTTON_PART_BY_TYPE) {
       const buttonType = GAME_BOY_BUTTON_PART_BY_TYPE[buttonPart];
@@ -88,24 +103,27 @@ export default class GameBoy extends THREE.Group {
     }
 
     if (SCENE_CONFIG.isMobile && objectPartType === GAME_BOY_PART_TYPE.Screen) {
-      const credits = document.querySelector('.credits');
+      const credits = document.querySelector(".credits");
 
       if (this._isMobileZoomIn) {
         this._isMobileZoomIn = false;
-        this.events.post('onZoomOut');
+        this.events.post("onZoomOut");
 
-        credits.classList.remove('hide');
-        credits.classList.add('show');
+        credits.classList.remove("hide");
+        credits.classList.add("show");
       } else {
         this._isMobileZoomIn = true;
-        this.events.post('onZoomIn');
+        this.events.post("onZoomIn");
 
-        credits.classList.remove('show');
-        credits.classList.add('hide');
+        credits.classList.remove("show");
+        credits.classList.add("hide");
       }
     }
 
-    if (objectPartType === GAME_BOY_PART_TYPE.PowerButton || objectPartType === GAME_BOY_PART_TYPE.PowerButtonFrame) {
+    if (
+      objectPartType === GAME_BOY_PART_TYPE.PowerButton ||
+      objectPartType === GAME_BOY_PART_TYPE.PowerButtonFrame
+    ) {
       this.powerButtonSwitch();
       this._resetReturnRotationTimer();
     }
@@ -122,23 +140,38 @@ export default class GameBoy extends THREE.Group {
   onPointerMove(x, y) {
     this._pointerPosition.set(x, y);
 
-    if (this._isDragging || !this._isDefaultRotation || !GAME_BOY_CONFIG.rotation.rotationCursorEnabled || !GAME_BOY_CONFIG.rotation.debugRotationCursorEnabled || SCENE_CONFIG.isMobile) {
+    if (
+      this._isDragging ||
+      !this._isDefaultRotation ||
+      !GAME_BOY_CONFIG.rotation.rotationCursorEnabled ||
+      !GAME_BOY_CONFIG.rotation.debugRotationCursorEnabled ||
+      SCENE_CONFIG.isMobile
+    ) {
       return;
     }
 
-    const percentX = x / window.innerWidth * 2 - 1;
-    const percentY = y / window.innerHeight * 2 - 1;
+    const percentX = (x / window.innerWidth) * 2 - 1;
+    const percentY = (y / window.innerHeight) * 2 - 1;
 
     this._rotationObject.quaternion.copy(this._rotationQuaternion);
-    this._rotationObject.rotateOnAxis(new THREE.Vector3(0, 1, 0), (percentX) * GAME_BOY_CONFIG.rotation.cursorRotationSpeed);
-    this._rotationObject.rotateOnAxis(new THREE.Vector3(1, 0, 0), (percentY) * GAME_BOY_CONFIG.rotation.cursorRotationSpeed);
+    this._rotationObject.rotateOnAxis(
+      new THREE.Vector3(0, 1, 0),
+      percentX * GAME_BOY_CONFIG.rotation.cursorRotationSpeed
+    );
+    this._rotationObject.rotateOnAxis(
+      new THREE.Vector3(1, 0, 0),
+      percentY * GAME_BOY_CONFIG.rotation.cursorRotationSpeed
+    );
   }
 
   onPointerDragMove(dragX, dragY) {
     if (this._draggingObjectType === GAME_BOY_PART_TYPE.VolumeControl) {
       const volumeControl = this._parts[GAME_BOY_PART_TYPE.VolumeControl];
-      const maxAngle = GAME_BOY_CONFIG.volumeController.maxAngle * THREE.MathUtils.DEG2RAD;
-      volumeControl.rotation.z = volumeControl.rotationZ + dragY * GAME_BOY_CONFIG.volumeController.sensitivity;
+      const maxAngle =
+        GAME_BOY_CONFIG.volumeController.maxAngle * THREE.MathUtils.DEG2RAD;
+      volumeControl.rotation.z =
+        volumeControl.rotationZ +
+        dragY * GAME_BOY_CONFIG.volumeController.sensitivity;
 
       if (volumeControl.rotation.z < -maxAngle) {
         volumeControl.rotation.z = -maxAngle;
@@ -148,20 +181,30 @@ export default class GameBoy extends THREE.Group {
         volumeControl.rotation.z = maxAngle;
       }
 
-      SOUNDS_CONFIG.gameBoyVolume = (volumeControl.rotation.z + maxAngle) / (maxAngle * 2);
-      this.events.post('onGameBoyVolumeChanged');
+      SOUNDS_CONFIG.gameBoyVolume =
+        (volumeControl.rotation.z + maxAngle) / (maxAngle * 2);
+      this.events.post("onGameBoyVolumeChanged");
     }
 
-
-    if (this._draggableParts.includes(this._draggingObjectType) && GAME_BOY_CONFIG.rotation.rotationDragEnabled && GAME_BOY_CONFIG.rotation.debugRotationDragEnabled) {
+    if (
+      this._draggableParts.includes(this._draggingObjectType) &&
+      GAME_BOY_CONFIG.rotation.rotationDragEnabled &&
+      GAME_BOY_CONFIG.rotation.debugRotationDragEnabled
+    ) {
       this._rotationObject.quaternion.copy(this._rotationQuaternion);
-      this._rotationObject.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), -dragX * this._dragRotationSpeed * 0.001);
-      this._rotationObject.rotateOnWorldAxis(new THREE.Vector3(1, 0, 0), -dragY * this._dragRotationSpeed * 0.001);
+      this._rotationObject.rotateOnWorldAxis(
+        new THREE.Vector3(0, 1, 0),
+        -dragX * this._dragRotationSpeed * 0.001
+      );
+      this._rotationObject.rotateOnWorldAxis(
+        new THREE.Vector3(1, 0, 0),
+        -dragY * this._dragRotationSpeed * 0.001
+      );
     }
   }
 
   onPointerDragDown(object) {
-    const objectPartType = object.userData['partType'];
+    const objectPartType = object.userData["partType"];
 
     if (objectPartType === GAME_BOY_PART_TYPE.VolumeControl) {
       this._isDragging = true;
@@ -169,7 +212,11 @@ export default class GameBoy extends THREE.Group {
       this._stopReturnRotationTimer();
     }
 
-    if (this._draggableParts.includes(objectPartType) && GAME_BOY_CONFIG.rotation.rotationDragEnabled && GAME_BOY_CONFIG.rotation.debugRotationDragEnabled) {
+    if (
+      this._draggableParts.includes(objectPartType) &&
+      GAME_BOY_CONFIG.rotation.rotationDragEnabled &&
+      GAME_BOY_CONFIG.rotation.debugRotationDragEnabled
+    ) {
       this._rotationQuaternion.copy(this.quaternion);
 
       this._isDragging = true;
@@ -181,7 +228,10 @@ export default class GameBoy extends THREE.Group {
   }
 
   onDragPointerUp() {
-    if (!GAME_BOY_CONFIG.rotation.rotationDragEnabled || !GAME_BOY_CONFIG.rotation.debugRotationDragEnabled) {
+    if (
+      !GAME_BOY_CONFIG.rotation.rotationDragEnabled ||
+      !GAME_BOY_CONFIG.rotation.debugRotationDragEnabled
+    ) {
       return;
     }
 
@@ -199,10 +249,12 @@ export default class GameBoy extends THREE.Group {
       return;
     }
 
-    const maxAngle = GAME_BOY_CONFIG.volumeController.maxAngle * THREE.MathUtils.DEG2RAD;
+    const maxAngle =
+      GAME_BOY_CONFIG.volumeController.maxAngle * THREE.MathUtils.DEG2RAD;
     const volumeControl = this._parts[GAME_BOY_PART_TYPE.VolumeControl];
 
-    volumeControl.rotation.z = SOUNDS_CONFIG.gameBoyVolume * (maxAngle * 2) - maxAngle;
+    volumeControl.rotation.z =
+      SOUNDS_CONFIG.gameBoyVolume * (maxAngle * 2) - maxAngle;
     volumeControl.rotationZ = volumeControl.rotation.z;
   }
 
@@ -211,11 +263,15 @@ export default class GameBoy extends THREE.Group {
   }
 
   onPointerOver(object) {
-    const objectPartType = object.userData['partType'];
+    const objectPartType = object.userData["partType"];
 
-    if ((this._draggableParts.includes(objectPartType) && GAME_BOY_CONFIG.rotation.rotationDragEnabled && GAME_BOY_CONFIG.rotation.debugRotationDragEnabled)
-      || (objectPartType === GAME_BOY_PART_TYPE.VolumeControl)) {
-      Black.engine.containerElement.style.cursor = 'grab';
+    if (
+      (this._draggableParts.includes(objectPartType) &&
+        GAME_BOY_CONFIG.rotation.rotationDragEnabled &&
+        GAME_BOY_CONFIG.rotation.debugRotationDragEnabled) ||
+      objectPartType === GAME_BOY_PART_TYPE.VolumeControl
+    ) {
+      Black.engine.containerElement.style.cursor = "grab";
     }
   }
 
@@ -279,13 +335,16 @@ export default class GameBoy extends THREE.Group {
   }
 
   getOutlineMeshes(object) {
-    const partType = object.userData['partType'];
+    const partType = object.userData["partType"];
 
     if (GAME_BOY_CROSS_PARTS.includes(partType)) {
       return this._crossMeshes;
     }
 
-    if (partType === GAME_BOY_PART_TYPE.PowerButton || partType === GAME_BOY_PART_TYPE.PowerButtonFrame) {
+    if (
+      partType === GAME_BOY_PART_TYPE.PowerButton ||
+      partType === GAME_BOY_PART_TYPE.PowerButtonFrame
+    ) {
       const powerButton = this._parts[GAME_BOY_PART_TYPE.PowerButton];
       return [powerButton];
     }
@@ -359,10 +418,20 @@ export default class GameBoy extends THREE.Group {
     }
 
     if (this._isIntroActive) {
-      this.rotateOnWorldAxis(new THREE.Vector3(0, 1, 0), dt * 60 * GAME_BOY_CONFIG.intro.speed * 0.001);
+      this.rotateOnWorldAxis(
+        new THREE.Vector3(0, 1, 0),
+        dt * 60 * GAME_BOY_CONFIG.intro.speed * 0.001
+      );
     } else {
-      this._rotationLerpSpeed = this._lerp(this._rotationLerpSpeed, GAME_BOY_CONFIG.rotation.standardLerpSpeed, dt * 60 * 0.02);
-      this.quaternion.slerp(this._rotationObject.quaternion, dt * 60 * this._rotationLerpSpeed);
+      this._rotationLerpSpeed = this._lerp(
+        this._rotationLerpSpeed,
+        GAME_BOY_CONFIG.rotation.standardLerpSpeed,
+        dt * 60 * 0.02
+      );
+      this.quaternion.slerp(
+        this._rotationObject.quaternion,
+        dt * 60 * this._rotationLerpSpeed
+      );
     }
   }
 
@@ -370,13 +439,17 @@ export default class GameBoy extends THREE.Group {
     if (GAME_BOY_CONFIG.updateTexture) {
       if (this._updateSkipAllowed) {
         if (this._updateScreenCounter >= this._updateScreenSkipFrames) {
-          this._parts[GAME_BOY_PART_TYPE.Screen].material.uniforms.uBitmapTexture.value.needsUpdate = true;
+          this._parts[
+            GAME_BOY_PART_TYPE.Screen
+          ].material.uniforms.uBitmapTexture.value.needsUpdate = true;
           this._updateScreenCounter = 0;
         }
 
         this._updateScreenCounter += 1;
       } else {
-        this._parts[GAME_BOY_PART_TYPE.Screen].material.uniforms.uBitmapTexture.value.needsUpdate = true;
+        this._parts[
+          GAME_BOY_PART_TYPE.Screen
+        ].material.uniforms.uBitmapTexture.value.needsUpdate = true;
       }
 
       if (!this._isFirstTextureUpdate) {
@@ -391,7 +464,7 @@ export default class GameBoy extends THREE.Group {
       this._buttonRepeatTime += dt;
 
       if (this._buttonRepeatTime >= GAME_BOY_CONFIG.buttons.repeatTime) {
-        this.events.post('onButtonPress', this._pressedButtonType);
+        this.events.post("onButtonPress", this._pressedButtonType);
         this._buttonRepeatTime = 0;
       }
     }
@@ -414,7 +487,10 @@ export default class GameBoy extends THREE.Group {
   }
 
   _setReturnRotationTimer() {
-    this._returnRotationTimer = Delayed.call(GAME_BOY_CONFIG.rotation.returnTime, () => this._onReturnRotation());
+    this._returnRotationTimer = Delayed.call(
+      GAME_BOY_CONFIG.rotation.returnTime,
+      () => this._onReturnRotation()
+    );
   }
 
   _resetReturnRotationTimer() {
@@ -427,9 +503,13 @@ export default class GameBoy extends THREE.Group {
     this._stopButtonTween(buttonType);
 
     const endAngle = config.rotateAngle * THREE.MathUtils.DEG2RAD;
-    const time = Math.abs(this._crossButtonsGroup.rotation[config.rotateAxis] - endAngle) / (config.moveSpeed * 0.001);
+    const time =
+      Math.abs(this._crossButtonsGroup.rotation[config.rotateAxis] - endAngle) /
+      (config.moveSpeed * 0.001);
 
-    this._buttonTween[buttonType] = new TWEEN.Tween(this._crossButtonsGroup.rotation)
+    this._buttonTween[buttonType] = new TWEEN.Tween(
+      this._crossButtonsGroup.rotation
+    )
       .to({ [config.rotateAxis]: endAngle }, time)
       .easing(TWEEN.Easing.Sinusoidal.Out)
       .start()
@@ -444,9 +524,13 @@ export default class GameBoy extends THREE.Group {
     const config = GAME_BOY_BUTTONS_CONFIG[buttonType];
     this._stopButtonTween(buttonType);
 
-    const time = Math.abs(this._crossButtonsGroup.rotation[config.rotateAxis]) / (config.moveSpeed * 0.001);
+    const time =
+      Math.abs(this._crossButtonsGroup.rotation[config.rotateAxis]) /
+      (config.moveSpeed * 0.001);
 
-    this._buttonTween[buttonType] = new TWEEN.Tween(this._crossButtonsGroup.rotation)
+    this._buttonTween[buttonType] = new TWEEN.Tween(
+      this._crossButtonsGroup.rotation
+    )
       .to({ [config.rotateAxis]: 0 }, time)
       .easing(TWEEN.Easing.Sinusoidal.Out)
       .start();
@@ -454,12 +538,15 @@ export default class GameBoy extends THREE.Group {
 
   _pressDownButton(buttonType, autoPressUp = false) {
     this._pressedButtonType = buttonType;
-    this.events.post('onButtonPress', buttonType);
+    this.events.post("onButtonPress", buttonType);
 
     if (GAME_BOY_BUTTONS_CONFIG[buttonType].keyRepeat) {
-      this._firstRepeatTimer = Delayed.call(GAME_BOY_CONFIG.buttons.firstRepeatTime, () => {
-        this._buttonRepeatAllowed = true;
-      });
+      this._firstRepeatTimer = Delayed.call(
+        GAME_BOY_CONFIG.buttons.firstRepeatTime,
+        () => {
+          this._buttonRepeatAllowed = true;
+        }
+      );
     }
 
     if (CROSS_BUTTONS.includes(buttonType)) {
@@ -473,7 +560,10 @@ export default class GameBoy extends THREE.Group {
 
     const config = GAME_BOY_BUTTONS_CONFIG[buttonType];
 
-    const distance = Math.abs(button.position.z - (button.userData.startPosition.z - config.moveDistance));
+    const distance = Math.abs(
+      button.position.z -
+        (button.userData.startPosition.z - config.moveDistance)
+    );
     const time = distance / (config.moveSpeed * 0.001);
 
     this._buttonTween[buttonType] = new TWEEN.Tween(button.position)
@@ -488,7 +578,7 @@ export default class GameBoy extends THREE.Group {
   }
 
   _pressUpButton(buttonType) {
-    this.events.post('onButtonUp', buttonType);
+    this.events.post("onButtonUp", buttonType);
     this._pressedButtonType = null;
     this._buttonRepeatAllowed = false;
     this._stopFirstRepeatTimer();
@@ -504,7 +594,9 @@ export default class GameBoy extends THREE.Group {
 
     const config = GAME_BOY_BUTTONS_CONFIG[buttonType];
 
-    const distance = Math.abs(button.position.z - button.userData.startPosition.z);
+    const distance = Math.abs(
+      button.position.z - button.userData.startPosition.z
+    );
     const time = distance / (config.moveSpeed * 0.001);
 
     this._buttonTween[buttonType] = new TWEEN.Tween(button.position)
@@ -534,29 +626,43 @@ export default class GameBoy extends THREE.Group {
 
     this._playSound(this._powerSwitchSound);
     GAME_BOY_CONFIG.powerOn = true;
-    this.events.post('onPowerOn');
+    this.events.post("onPowerOn");
 
     const powerIndicator = this._parts[GAME_BOY_PART_TYPE.PowerIndicator];
     const powerButton = this._parts[GAME_BOY_PART_TYPE.PowerButton];
 
     this._stopPowerButtonTween();
 
-    const distance = Math.abs(powerButton.position.x - (powerButton.userData.startPosition.x + GAME_BOY_CONFIG.powerButton.moveDistance));
+    const distance = Math.abs(
+      powerButton.position.x -
+        (powerButton.userData.startPosition.x +
+          GAME_BOY_CONFIG.powerButton.moveDistance)
+    );
     const time = distance / (GAME_BOY_CONFIG.powerButton.moveSpeed * 0.001);
 
     this._powerButtonTween = new TWEEN.Tween(powerButton.position)
-      .to({ x: powerButton.userData.startPosition.x + GAME_BOY_CONFIG.powerButton.moveDistance }, time)
+      .to(
+        {
+          x:
+            powerButton.userData.startPosition.x +
+            GAME_BOY_CONFIG.powerButton.moveDistance,
+        },
+        time
+      )
       .easing(TWEEN.Easing.Sinusoidal.Out)
       .start();
 
-    const powerIndicatorObject = { value: powerIndicator.material.uniforms.uMixPercent.value };
+    const powerIndicatorObject = {
+      value: powerIndicator.material.uniforms.uMixPercent.value,
+    };
 
     this._powerIndicatorTween = new TWEEN.Tween(powerIndicatorObject)
       .to({ value: 1 }, time)
       .easing(TWEEN.Easing.Sinusoidal.Out)
       .start()
       .onUpdate(() => {
-        powerIndicator.material.uniforms.uMixPercent.value = powerIndicatorObject.value;
+        powerIndicator.material.uniforms.uMixPercent.value =
+          powerIndicatorObject.value;
       });
   }
 
@@ -572,15 +678,18 @@ export default class GameBoy extends THREE.Group {
     GameBoyAudio.onTurnOffGameBoy();
 
     this._playSound(this._powerSwitchSound);
+
     GAME_BOY_CONFIG.powerOn = false;
-    this.events.post('onPowerOff');
+    this.events.post("onPowerOff");
 
     const powerIndicator = this._parts[GAME_BOY_PART_TYPE.PowerIndicator];
     const powerButton = this._parts[GAME_BOY_PART_TYPE.PowerButton];
 
     this._stopPowerButtonTween();
 
-    const distance = Math.abs(powerButton.position.x - powerButton.userData.startPosition.x);
+    const distance = Math.abs(
+      powerButton.position.x - powerButton.userData.startPosition.x
+    );
     const time = distance / (GAME_BOY_CONFIG.powerButton.moveSpeed * 0.001);
 
     this._powerButtonTween = new TWEEN.Tween(powerButton.position)
@@ -588,7 +697,9 @@ export default class GameBoy extends THREE.Group {
       .easing(TWEEN.Easing.Sinusoidal.Out)
       .start();
 
-    const powerIndicatorObject = { value: powerIndicator.material.uniforms.uMixPercent.value };
+    const powerIndicatorObject = {
+      value: powerIndicator.material.uniforms.uMixPercent.value,
+    };
 
     this._powerIndicatorTween = new TWEEN.Tween(powerIndicatorObject)
       .to({ value: 0 }, time * 28)
@@ -596,7 +707,8 @@ export default class GameBoy extends THREE.Group {
       .delay(time * 2)
       .start()
       .onUpdate(() => {
-        powerIndicator.material.uniforms.uMixPercent.value = powerIndicatorObject.value;
+        powerIndicator.material.uniforms.uMixPercent.value =
+          powerIndicatorObject.value;
       });
   }
 
@@ -637,19 +749,24 @@ export default class GameBoy extends THREE.Group {
     // }, 500);
   }
 
+  // Loading Game Boy GLB model here !!!
   _initGameBoyParts() {
-    const gameBoyModel = Loader.assets['game-boy'].scene;
+    const gameBoyModel = Loader.assets["game-boy"].scene;
 
     for (const partName in GAME_BOY_PART_TYPE) {
       const partType = GAME_BOY_PART_TYPE[partName];
-      const part = gameBoyModel.children.find(child => child.name === partType);
+      const part = gameBoyModel.children.find(
+        (child) => child.name === partType
+      );
 
-      part.userData['partType'] = partType;
-      part.userData['sceneObjectType'] = this._sceneObjectType;
-      part.userData['isActive'] = GAME_BOY_ACTIVE_PARTS.includes(partType);
-      part.userData['showOutline'] = GAME_BOY_ACTIVE_PARTS.includes(partType);
-      part.userData['isDraggable'] = this._draggableParts.includes(partType) || partType === GAME_BOY_PART_TYPE.VolumeControl;
-      part.userData['startPosition'] = part.position.clone();
+      part.userData["partType"] = partType;
+      part.userData["sceneObjectType"] = this._sceneObjectType;
+      part.userData["isActive"] = GAME_BOY_ACTIVE_PARTS.includes(partType);
+      part.userData["showOutline"] = GAME_BOY_ACTIVE_PARTS.includes(partType);
+      part.userData["isDraggable"] =
+        this._draggableParts.includes(partType) ||
+        partType === GAME_BOY_PART_TYPE.VolumeControl;
+      part.userData["startPosition"] = part.position.clone();
 
       this._parts[partType] = part;
       this._allMeshes.push(part);
@@ -658,8 +775,8 @@ export default class GameBoy extends THREE.Group {
 
     if (SCENE_CONFIG.isMobile) {
       const screen = this._parts[GAME_BOY_PART_TYPE.Screen];
-      screen.userData['isActive'] = true;
-      screen.userData['showOutline'] = false;
+      screen.userData["isActive"] = true;
+      screen.userData["showOutline"] = false;
     }
 
     this._parts[GAME_BOY_PART_TYPE.VolumeControl].rotationZ = 0;
@@ -668,22 +785,29 @@ export default class GameBoy extends THREE.Group {
   _initButtons() {
     this._buttons[BUTTON_TYPE.A] = this._parts[GAME_BOY_PART_TYPE.ButtonA];
     this._buttons[BUTTON_TYPE.B] = this._parts[GAME_BOY_PART_TYPE.ButtonB];
-    this._buttons[BUTTON_TYPE.Select] = this._parts[GAME_BOY_PART_TYPE.ButtonSelect];
-    this._buttons[BUTTON_TYPE.Start] = this._parts[GAME_BOY_PART_TYPE.ButtonStart];
-    this._buttons[BUTTON_TYPE.CrossLeft] = this._parts[GAME_BOY_PART_TYPE.ButtonCrossLeft];
-    this._buttons[BUTTON_TYPE.CrossRight] = this._parts[GAME_BOY_PART_TYPE.ButtonCrossRight];
-    this._buttons[BUTTON_TYPE.CrossUp] = this._parts[GAME_BOY_PART_TYPE.ButtonCrossUp];
-    this._buttons[BUTTON_TYPE.CrossDown] = this._parts[GAME_BOY_PART_TYPE.ButtonCrossDown];
+    this._buttons[BUTTON_TYPE.Select] =
+      this._parts[GAME_BOY_PART_TYPE.ButtonSelect];
+    this._buttons[BUTTON_TYPE.Start] =
+      this._parts[GAME_BOY_PART_TYPE.ButtonStart];
+    this._buttons[BUTTON_TYPE.CrossLeft] =
+      this._parts[GAME_BOY_PART_TYPE.ButtonCrossLeft];
+    this._buttons[BUTTON_TYPE.CrossRight] =
+      this._parts[GAME_BOY_PART_TYPE.ButtonCrossRight];
+    this._buttons[BUTTON_TYPE.CrossUp] =
+      this._parts[GAME_BOY_PART_TYPE.ButtonCrossUp];
+    this._buttons[BUTTON_TYPE.CrossDown] =
+      this._parts[GAME_BOY_PART_TYPE.ButtonCrossDown];
   }
 
   _initCrossGroup() {
-    const crossButtonsGroup = this._crossButtonsGroup = new THREE.Group();
+    const crossButtonsGroup = (this._crossButtonsGroup = new THREE.Group());
     this.add(crossButtonsGroup);
 
-    const startPosition = this._buttons[BUTTON_TYPE.CrossLeft].userData.startPosition;
+    const startPosition =
+      this._buttons[BUTTON_TYPE.CrossLeft].userData.startPosition;
     crossButtonsGroup.position.copy(startPosition);
 
-    CROSS_BUTTONS.forEach(buttonType => {
+    CROSS_BUTTONS.forEach((buttonType) => {
       const button = this._buttons[buttonType];
       crossButtonsGroup.add(button);
 
@@ -700,23 +824,27 @@ export default class GameBoy extends THREE.Group {
   }
 
   _addBakedMaterial() {
-    const texture = Loader.assets['baked-game-boy'];
+    const texture = Loader.assets["baked-game-boy"];
     texture.flipY = false;
 
     const bakedMaterial = new THREE.MeshBasicMaterial({
       map: texture,
     });
 
-    this._allMeshes.forEach(mesh => {
+    this._allMeshes.forEach((mesh) => {
       mesh.material = bakedMaterial;
     });
   }
 
   _addCartridgePocketMaterial() {
-    const cartridgePocketStandardTexture = this._cartridgePocketStandardTexture = Loader.assets['baked-cartridge-pocket'];
+    const cartridgePocketStandardTexture =
+      (this._cartridgePocketStandardTexture =
+        Loader.assets["baked-cartridge-pocket"]);
     cartridgePocketStandardTexture.flipY = false;
 
-    const cartridgePocketWidthCartridgeTexture = this._cartridgePocketWithCartridgeTexture = Loader.assets['baked-cartridge-pocket-with-cartridge'];
+    const cartridgePocketWidthCartridgeTexture =
+      (this._cartridgePocketWithCartridgeTexture =
+        Loader.assets["baked-cartridge-pocket-with-cartridge"]);
     cartridgePocketWidthCartridgeTexture.flipY = false;
 
     const bakedMaterial = new THREE.MeshBasicMaterial({
@@ -728,13 +856,17 @@ export default class GameBoy extends THREE.Group {
   }
 
   _addPowerIndicatorMaterial() {
-    const texture = Loader.assets['baked-power-indicator'];
+    const texture = Loader.assets["baked-power-indicator"];
     texture.flipY = false;
 
     const bakedMaterial = new THREE.ShaderMaterial({
       uniforms: {
         uTexture: { value: texture },
-        uColor: { value: new THREE.Color(GAME_BOY_CONFIG.powerButton.powerIndicatorColor) },
+        uColor: {
+          value: new THREE.Color(
+            GAME_BOY_CONFIG.powerButton.powerIndicatorColor
+          ),
+        },
         uMixPercent: { value: 0 },
       },
       vertexShader: mixTextureColorVertexShader,
@@ -746,16 +878,17 @@ export default class GameBoy extends THREE.Group {
   }
 
   _addScreenMaterial() {
-    const canvasTexture = this._canvasTexture = new THREE.Texture(this._pixiCanvas);
+    const canvasTexture = (this._canvasTexture = new THREE.Texture(
+      this._pixiCanvas
+    ));
     canvasTexture.flipY = false;
     canvasTexture.magFilter = THREE.NearestFilter;
 
-    const bakedTexture = Loader.assets['baked-screen-shadow'];
+    const bakedTexture = Loader.assets["baked-screen-shadow"];
     bakedTexture.flipY = false;
 
     const material = new THREE.ShaderMaterial({
-      uniforms:
-      {
+      uniforms: {
         uTexture: { value: bakedTexture },
         uBitmapTexture: { value: canvasTexture },
       },
@@ -768,23 +901,26 @@ export default class GameBoy extends THREE.Group {
   }
 
   _initZeldaIntroVideo() {
-    const videoElement = this._zeldaIntroVideo = document.createElement('video');
+    const videoElement = (this._zeldaIntroVideo =
+      document.createElement("video"));
     videoElement.muted = true;
     videoElement.controls = true;
     videoElement.playsInline = true;
-    videoElement.src = '/video/zelda-intro.mp4';
+    videoElement.src = "/video/zelda-intro.mp4";
 
-    videoElement.addEventListener('ended', () => {
+    videoElement.addEventListener("ended", () => {
       this._onZeldaIntroEnded();
     });
 
-    const videoTexture = this._zeldaVideoTexture = new THREE.VideoTexture(videoElement);
+    const videoTexture = (this._zeldaVideoTexture = new THREE.VideoTexture(
+      videoElement
+    ));
     videoTexture.flipY = false;
     videoTexture.magFilter = THREE.NearestFilter;
   }
 
   _initCrossMeshes() {
-    CROSS_BUTTONS.forEach(buttonType => {
+    CROSS_BUTTONS.forEach((buttonType) => {
       const button = this._buttons[buttonType];
       this._crossMeshes.push(button);
     });
@@ -792,7 +928,8 @@ export default class GameBoy extends THREE.Group {
 
   _initInitialRotation() {
     if (GAME_BOY_CONFIG.intro.enabled) {
-      this.rotation.x = GAME_BOY_CONFIG.intro.rotationX * THREE.MathUtils.DEG2RAD;
+      this.rotation.x =
+        GAME_BOY_CONFIG.intro.rotationX * THREE.MathUtils.DEG2RAD;
     }
   }
 
@@ -848,7 +985,8 @@ export default class GameBoy extends THREE.Group {
   }
 
   _initPowerSwitchSound() {
-    const powerSwitchSound = this._powerSwitchSound = new THREE.PositionalAudio(this._audioListener);
+    const powerSwitchSound = (this._powerSwitchSound =
+      new THREE.PositionalAudio(this._audioListener));
     this.add(powerSwitchSound);
 
     powerSwitchSound.setRefDistance(10);
@@ -858,16 +996,18 @@ export default class GameBoy extends THREE.Group {
 
     powerSwitchSound.setVolume(this._globalVolume);
 
-    Loader.events.on('onAudioLoaded', () => {
-      powerSwitchSound.setBuffer(Loader.assets['power-switch']);
+    Loader.events.on("onAudioLoaded", () => {
+      powerSwitchSound.setBuffer(Loader.assets["power-switch"]);
     });
   }
 
   _initInsertEjectCartridgeSound() {
-    const insertCartridgeSound = this._insertCartridgeSound = new THREE.PositionalAudio(this._audioListener);
+    const insertCartridgeSound = (this._insertCartridgeSound =
+      new THREE.PositionalAudio(this._audioListener));
     this.add(insertCartridgeSound);
 
-    const ejectCartridgeSound = this._ejectCartridgeSound = new THREE.PositionalAudio(this._audioListener);
+    const ejectCartridgeSound = (this._ejectCartridgeSound =
+      new THREE.PositionalAudio(this._audioListener));
     this.add(ejectCartridgeSound);
 
     insertCartridgeSound.setRefDistance(10);
@@ -880,9 +1020,9 @@ export default class GameBoy extends THREE.Group {
     insertCartridgeSound.setVolume(this._globalVolume);
     ejectCartridgeSound.setVolume(this._globalVolume);
 
-    Loader.events.on('onAudioLoaded', () => {
-      insertCartridgeSound.setBuffer(Loader.assets['insert-cartridge']);
-      ejectCartridgeSound.setBuffer(Loader.assets['eject-cartridge']);
+    Loader.events.on("onAudioLoaded", () => {
+      insertCartridgeSound.setBuffer(Loader.assets["insert-cartridge"]);
+      ejectCartridgeSound.setBuffer(Loader.assets["eject-cartridge"]);
     });
   }
 

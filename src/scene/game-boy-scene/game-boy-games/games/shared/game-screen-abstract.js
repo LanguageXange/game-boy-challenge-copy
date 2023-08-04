@@ -1,4 +1,4 @@
-import * as PIXI from 'pixi.js';
+import * as PIXI from "pixi.js";
 
 export default class GameScreenAbstract extends PIXI.Container {
   constructor() {
@@ -23,13 +23,13 @@ export default class GameScreenAbstract extends PIXI.Container {
     return this._screenType;
   }
 
-  update(dt) { }
+  update(dt) {}
 
-  onButtonPress(buttonType) { }
+  onButtonPress(buttonType) {}
 
-  onButtonUp(buttonType) { }
+  onButtonUp(buttonType) {}
 
-  reset() { }
+  reset() {}
 
-  stopTweens() { }
+  stopTweens() {}
 }

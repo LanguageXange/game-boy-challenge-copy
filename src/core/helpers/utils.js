@@ -1,4 +1,4 @@
-import * as THREE from 'three';
+import * as THREE from "three";
 import Loader from "../loader";
 
 const boundingBox = new THREE.Box3();

@@ -1,18 +1,20 @@
-import { Black, MessageDispatcher } from 'black-engine';
-import * as THREE from 'three';
-import { SCENE_OBJECT_TYPE } from './data/game-boy-scene-data';
-import { GAME_BOY_CONFIG } from './game-boy/data/game-boy-config';
-import { CARTRIDGES_BY_TYPE_CONFIG, CARTRIDGE_TYPE } from './cartridges/data/cartridges-config';
-import DEBUG_CONFIG from '../../core/configs/debug-config';
-import { SOUNDS_CONFIG } from '../../core/configs/sounds-config';
-import SCENE_CONFIG from '../../core/configs/scene-config';
-import { CARTRIDGE_STATE } from './game-boy/data/game-boy-data';
-import { TETRIS_CONFIG } from './game-boy-games/games/tetris/data/tetris-config';
-import { GAME_TYPE } from './game-boy-games/data/games-config';
+import { Black, MessageDispatcher } from "black-engine";
+import * as THREE from "three";
+import { SCENE_OBJECT_TYPE } from "./data/game-boy-scene-data";
+import { GAME_BOY_CONFIG } from "./game-boy/data/game-boy-config";
+import {
+  CARTRIDGES_BY_TYPE_CONFIG,
+  CARTRIDGE_TYPE,
+} from "./cartridges/data/cartridges-config";
+import DEBUG_CONFIG from "../../core/configs/debug-config";
+import { SOUNDS_CONFIG } from "../../core/configs/sounds-config";
+import SCENE_CONFIG from "../../core/configs/scene-config";
+import { CARTRIDGE_STATE } from "./game-boy/data/game-boy-data";
+import { TETRIS_CONFIG } from "./game-boy-games/games/tetris/data/tetris-config";
+import { GAME_TYPE } from "./game-boy-games/data/games-config";
 
 export default class GameBoyController {
   constructor(data) {
-
     this.events = new MessageDispatcher();
 
     this._scene = data.scene;
@@ -39,7 +41,7 @@ export default class GameBoyController {
 
   update(dt) {
     this._activeObjects[SCENE_OBJECT_TYPE.GameBoy].update(dt);
-    this._activeObjects[SCENE_OBJECT_TYPE.Cartridges].update(dt);
+    // this._activeObjects[SCENE_OBJECT_TYPE.Cartridges].update(dt);
     this._cameraController.update(dt);
     this._background.update(dt);
 
@@ -47,10 +49,13 @@ export default class GameBoyController {
       return;
     }
 
-    const intersect = this._raycasterController.checkIntersection(this._pointerPosition.x, this._pointerPosition.y);
+    const intersect = this._raycasterController.checkIntersection(
+      this._pointerPosition.x,
+      this._pointerPosition.y
+    );
 
     if (intersect === null) {
-      Black.engine.containerElement.style.cursor = 'auto';
+      Black.engine.containerElement.style.cursor = "auto";
       this._resetGlow();
     }
 
@@ -124,20 +129,25 @@ export default class GameBoyController {
   _checkToGlow(intersect) {
     const object = intersect.object;
 
-    if (object === null || !object.userData.isActive || !object.userData.showOutline) {
-      Black.engine.containerElement.style.cursor = 'auto';
+    if (
+      object === null ||
+      !object.userData.isActive ||
+      !object.userData.showOutline
+    ) {
+      Black.engine.containerElement.style.cursor = "auto";
       this._resetGlow();
 
-      this._activeObjects[SCENE_OBJECT_TYPE.Cartridges].onPointerOut();
+      //this._activeObjects[SCENE_OBJECT_TYPE.Cartridges].onPointerOut();
 
       return;
     }
 
     if (object.userData.isActive && object.userData.showOutline) {
-      Black.engine.containerElement.style.cursor = 'pointer';
+      Black.engine.containerElement.style.cursor = "pointer";
 
       const sceneObjectType = object.userData.sceneObjectType;
-      const meshes = this._activeObjects[sceneObjectType].getOutlineMeshes(object);
+      const meshes =
+        this._activeObjects[sceneObjectType].getOutlineMeshes(object);
 
       this._setGlow(meshes);
     }
@@ -179,78 +189,137 @@ export default class GameBoyController {
   }
 
   _initIntroSignal() {
-    const introText = document.querySelector('.intro-text');
+    const introText = document.querySelector(".intro-text");
 
     if (GAME_BOY_CONFIG.intro.enabled) {
-      introText.innerHTML = 'Click to start';
+      introText.innerHTML = "Click to start";
 
       if (SCENE_CONFIG.isMobile) {
-        introText.classList.add('fastHide');
+        introText.classList.add("fastHide");
       }
     }
 
-    window.addEventListener('pointerdown', () => {
+    window.addEventListener("pointerdown", () => {
       if (this._isIntroActive) {
         this._isIntroActive = false;
         this._activeObjects[SCENE_OBJECT_TYPE.GameBoy].disableIntro();
 
-        introText.classList.add('hide');
+        introText.classList.add("hide");
       }
     });
   }
 
   _initActiveObjectsSignals() {
     const gameBoy = this._activeObjects[SCENE_OBJECT_TYPE.GameBoy];
-    const cartridges = this._activeObjects[SCENE_OBJECT_TYPE.Cartridges];
+    // const cartridges = this._activeObjects[SCENE_OBJECT_TYPE.Cartridges];
     const background = this._activeObjects[SCENE_OBJECT_TYPE.Background];
 
-    gameBoy.events.on('onButtonPress', (msg, buttonType) => this._games.onButtonPress(buttonType));
-    gameBoy.events.on('onButtonUp', (msg, buttonType) => this._games.onButtonUp(buttonType));
-    gameBoy.events.on('onPowerOn', () => this._onPowerOn());
-    gameBoy.events.on('onPowerOff', () => this._onPowerOff());
-    gameBoy.events.on('onGameBoyVolumeChanged', () => this._onGameBoyVolumeChanged());
-    gameBoy.events.on('onZoomIn', () => this._cameraController.zoomIn());
-    gameBoy.events.on('onZoomOut', () => this._cameraController.zoomOut());
-    cartridges.events.on('onCartridgeInserting', () => this._onCartridgeInserting());
-    cartridges.events.on('onCartridgeInserted', (msg, cartridge) => this._onCartridgeInserted(cartridge));
-    cartridges.events.on('onCartridgeEjecting', () => this._onCartridgeEjecting());
-    cartridges.events.on('onCartridgeEjected', () => this._onCartridgeEjected());
-    cartridges.events.on('cartridgeTypeChanged', () => this._onCartridgeTypeChanged());
-    cartridges.events.on('cartridgeInsertSound', () => gameBoy.playCartridgeInsertSound());
-    cartridges.events.on('cartridgeEjectSound', () => gameBoy.playCartridgeEjectSound());
-    cartridges.events.on('cartridgeStartEjecting', (msg, percent) => gameBoy.setCartridgePocketStandardTexture());
-    background.events.on('onClick', () => gameBoy.onBackgroundClick());
+    gameBoy.events.on("onButtonPress", (msg, buttonType) =>
+      this._games.onButtonPress(buttonType)
+    );
+    gameBoy.events.on("onButtonUp", (msg, buttonType) =>
+      this._games.onButtonUp(buttonType)
+    );
+    gameBoy.events.on("onPowerOn", () => this._onPowerOn());
+    gameBoy.events.on("onPowerOff", () => this._onPowerOff());
+    gameBoy.events.on("onGameBoyVolumeChanged", () =>
+      this._onGameBoyVolumeChanged()
+    );
+    gameBoy.events.on("onZoomIn", () => this._cameraController.zoomIn());
+    gameBoy.events.on("onZoomOut", () => this._cameraController.zoomOut());
+    // cartridges.events.on("onCartridgeInserting", () =>
+    //   this._onCartridgeInserting()
+    // );
+    // cartridges.events.on("onCartridgeInserted", (msg, cartridge) =>
+    //   this._onCartridgeInserted(cartridge)
+    // );
+    // cartridges.events.on("onCartridgeEjecting", () =>
+    //   this._onCartridgeEjecting()
+    // );
+    // cartridges.events.on("onCartridgeEjected", () =>
+    //   this._onCartridgeEjected()
+    // );
+    // cartridges.events.on("cartridgeTypeChanged", () =>
+    //   this._onCartridgeTypeChanged()
+    // );
+    // cartridges.events.on("cartridgeInsertSound", () =>
+    //   gameBoy.playCartridgeInsertSound()
+    // );
+    // cartridges.events.on("cartridgeEjectSound", () =>
+    //   gameBoy.playCartridgeEjectSound()
+    // );
+    // cartridges.events.on("cartridgeStartEjecting", (msg, percent) =>
+    //   gameBoy.setCartridgePocketStandardTexture()
+    // );
+    background.events.on("onClick", () => gameBoy.onBackgroundClick());
   }
 
   _initCameraControllerSignals() {
-    const cartridges = this._activeObjects[SCENE_OBJECT_TYPE.Cartridges];
-
-    this._cameraController.events.on('onRotationDragDisabled', () => this._onRotationDragDisabled());
-    this._cameraController.events.on('onZoom', (msg, zoomPercent) => cartridges.onZoomChanged(zoomPercent));
+    // const cartridges = this._activeObjects[SCENE_OBJECT_TYPE.Cartridges];
+    // this._cameraController.events.on("onRotationDragDisabled", () =>
+    //   this._onRotationDragDisabled()
+    // );
+    // this._cameraController.events.on("onZoom", (msg, zoomPercent) =>
+    //   cartridges.onZoomChanged(zoomPercent)
+    // );
   }
 
   _initGamesSignals() {
-    this._games.events.on('onBestScoreChange', () => this._onTetrisBestScoreChange());
-    this._games.events.on('gameStarted', (msg, gameType) => this._onGameStarted(gameType));
-    this._games.events.on('gameStopped', (msg, gameType) => this._onGameStopped(gameType));
+    this._games.events.on("onBestScoreChange", () =>
+      this._onTetrisBestScoreChange()
+    );
+    this._games.events.on("gameStarted", (msg, gameType) =>
+      this._onGameStarted(gameType)
+    );
+    this._games.events.on("gameStopped", (msg, gameType) =>
+      this._onGameStopped(gameType)
+    );
   }
 
   _initDebugSignals() {
     const gameBoy = this._activeObjects[SCENE_OBJECT_TYPE.GameBoy];
 
-    this._gameBoyDebug.events.on('rotationCursorChanged', () => gameBoy.onDebugRotationChanged());
-    this._gameBoyDebug.events.on('rotationDragChanged', () => gameBoy.onDebugRotationChanged());
-    this._gameBoyDebug.events.on('fpsMeterChanged', () => this.events.post('fpsMeterChanged'));
-    this._gameBoyDebug.events.on('orbitControlsChanged', () => this._onOrbitControlsChanged());
-    this._gameBoyDebug.events.on('turnOnButtonClicked', () => gameBoy.powerButtonSwitch());
-    this._gameBoyDebug.events.on('ejectCartridgeButtonClicked', () => this._onEjectCartridgeButtonClicked());
-    this._gameBoyDebug.events.on('insertCartridgeButtonClicked', (msg, cartridgeType) => this._onInsertCartridgeButtonClicked(cartridgeType));
-    this._gameBoyDebug.events.on('audioEnabledChanged', () => this._onDebugSoundsEnabledChanged());
-    this._gameBoyDebug.events.on('masterVolumeChanged', () => this._onMasterVolumeChanged());
-    this._gameBoyDebug.events.on('gameBoyVolumeChanged', () => this._onDebugGameBoyVolumeChanged());
-    this._gameBoyDebug.events.on('restartTetrisButtonClicked', (msg, level) => this._restartTetrisButtonClicked(level));
-    this._gameBoyDebug.events.on('tetrisDisableFalling', () => this._onTetrisDisableFalling());
-    this._gameBoyDebug.events.on('tetrisClearBottomLine', () => this._onTetrisClearBottomLine());
+    this._gameBoyDebug.events.on("rotationCursorChanged", () =>
+      gameBoy.onDebugRotationChanged()
+    );
+    this._gameBoyDebug.events.on("rotationDragChanged", () =>
+      gameBoy.onDebugRotationChanged()
+    );
+    this._gameBoyDebug.events.on("fpsMeterChanged", () =>
+      this.events.post("fpsMeterChanged")
+    );
+    this._gameBoyDebug.events.on("orbitControlsChanged", () =>
+      this._onOrbitControlsChanged()
+    );
+    this._gameBoyDebug.events.on("turnOnButtonClicked", () =>
+      gameBoy.powerButtonSwitch()
+    );
+    this._gameBoyDebug.events.on("ejectCartridgeButtonClicked", () =>
+      this._onEjectCartridgeButtonClicked()
+    );
+    this._gameBoyDebug.events.on(
+      "insertCartridgeButtonClicked",
+      (msg, cartridgeType) =>
+        this._onInsertCartridgeButtonClicked(cartridgeType)
+    );
+    this._gameBoyDebug.events.on("audioEnabledChanged", () =>
+      this._onDebugSoundsEnabledChanged()
+    );
+    this._gameBoyDebug.events.on("masterVolumeChanged", () =>
+      this._onMasterVolumeChanged()
+    );
+    this._gameBoyDebug.events.on("gameBoyVolumeChanged", () =>
+      this._onDebugGameBoyVolumeChanged()
+    );
+    this._gameBoyDebug.events.on("restartTetrisButtonClicked", (msg, level) =>
+      this._restartTetrisButtonClicked(level)
+    );
+    this._gameBoyDebug.events.on("tetrisDisableFalling", () =>
+      this._onTetrisDisableFalling()
+    );
+    this._gameBoyDebug.events.on("tetrisClearBottomLine", () =>
+      this._onTetrisClearBottomLine()
+    );
   }
 
   _onPowerOn() {
@@ -290,7 +359,9 @@ export default class GameBoyController {
     this._activeObjects[SCENE_OBJECT_TYPE.GameBoy].addCartridge(cartridge);
     this._activeObjects[SCENE_OBJECT_TYPE.GameBoy].enableRotation();
     this._activeObjects[SCENE_OBJECT_TYPE.GameBoy].powerOn();
-    this._activeObjects[SCENE_OBJECT_TYPE.GameBoy].setCartridgePocketStandardTexture();
+    this._activeObjects[
+      SCENE_OBJECT_TYPE.GameBoy
+    ].setCartridgePocketStandardTexture();
 
     this._gameBoyDebug.enableEjectCartridgeButton();
 
@@ -326,7 +397,9 @@ export default class GameBoyController {
   }
 
   _onInsertCartridgeButtonClicked(cartridgeType) {
-    this._activeObjects[SCENE_OBJECT_TYPE.Cartridges].insertCartridge(cartridgeType);
+    this._activeObjects[SCENE_OBJECT_TYPE.Cartridges].insertCartridge(
+      cartridgeType
+    );
   }
 
   _onSoundsEnabledChanged() {
@@ -339,16 +412,20 @@ export default class GameBoyController {
 
   _onDebugSoundsEnabledChanged() {
     this._onSoundsEnabledChanged();
-    this.events.post('onSoundsEnabledChanged');
+    this.events.post("onSoundsEnabledChanged");
   }
 
   _onMasterVolumeChanged() {
-    this._activeObjects[SCENE_OBJECT_TYPE.GameBoy].onVolumeChanged(SOUNDS_CONFIG.masterVolume);
+    this._activeObjects[SCENE_OBJECT_TYPE.GameBoy].onVolumeChanged(
+      SOUNDS_CONFIG.masterVolume
+    );
   }
 
   _onDebugGameBoyVolumeChanged() {
     this._games.onVolumeChanged();
-    this._activeObjects[SCENE_OBJECT_TYPE.GameBoy].updateVolumeControlRotation();
+    this._activeObjects[
+      SCENE_OBJECT_TYPE.GameBoy
+    ].updateVolumeControlRotation();
   }
 
   _onTetrisBestScoreChange() {

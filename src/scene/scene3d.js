@@ -1,7 +1,7 @@
-import * as THREE from 'three';
-import RaycasterController from './raycaster-controller';
-import { MessageDispatcher } from 'black-engine';
-import GameBoyScene from './game-boy-scene/game-boy-scene';
+import * as THREE from "three";
+import RaycasterController from "./raycaster-controller";
+import { MessageDispatcher } from "black-engine";
+import GameBoyScene from "./game-boy-scene/game-boy-scene";
 
 export default class Scene3D extends THREE.Group {
   constructor(data) {
@@ -9,11 +9,10 @@ export default class Scene3D extends THREE.Group {
 
     this.events = new MessageDispatcher();
 
-    this._data = data,
-    this._scene = data.scene,
-    this._camera = data.camera,
-
-    this._raycasterController = null;
+    (this._data = data),
+      (this._scene = data.scene),
+      (this._camera = data.camera),
+      (this._raycasterController = null);
     this._gameBoyScene = null;
 
     this._init();
@@ -58,12 +57,19 @@ export default class Scene3D extends THREE.Group {
   }
 
   _initGameBoy() {
-    const gameBoyScene = this._gameBoyScene = new GameBoyScene(this._data, this._raycasterController);
+    const gameBoyScene = (this._gameBoyScene = new GameBoyScene(
+      this._data,
+      this._raycasterController
+    ));
     this.add(gameBoyScene);
   }
 
   _initSignals() {
-    this._gameBoyScene.events.on('fpsMeterChanged', () => this.events.post('fpsMeterChanged'));
-    this._gameBoyScene.events.on('onSoundsEnabledChanged', () => this.events.post('onSoundsEnabledChanged'));
+    this._gameBoyScene.events.on("fpsMeterChanged", () =>
+      this.events.post("fpsMeterChanged")
+    );
+    this._gameBoyScene.events.on("onSoundsEnabledChanged", () =>
+      this.events.post("onSoundsEnabledChanged")
+    );
   }
 }
